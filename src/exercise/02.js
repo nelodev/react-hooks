@@ -3,19 +3,26 @@
 
 import * as React from 'react'
 
-function useLocalStorageState(initialName) {
-  const [name, setName] = React.useState(
-    () => window.localStorage.getItem('name') || initialName,
+function useLocalStorageState(data) {
+  const [value, setValue] = React.useState(
+    () => window.localStorage.getItem(data.name) || data.value,
   )
   React.useEffect(() => {
-    window.localStorage.setItem('name', name)
-  }, [name])
+    window.localStorage.setItem(data.name, value)
+  }, [data, value])
 
-  return [name, setName]
+  return [value, setValue]
 }
 
-function Greeting({initialName = ''}) {
-  const [name, setName] = useLocalStorageState(initialName)
+function Greeting({initialName = '', initialAge = 25}) {
+  const [name, setName] = useLocalStorageState({
+    name: 'initialName',
+    value: initialName,
+  })
+  const [age, setAge] = useLocalStorageState({
+    name: 'age',
+    value: initialAge,
+  })
   // 🐨 initialize the state to the value from localStorage
   // 💰 window.localStorage.getItem('name') || initialName
   // const [name, setName] = React.useState(
@@ -33,13 +40,26 @@ function Greeting({initialName = ''}) {
   function handleChange(event) {
     setName(event.target.value)
   }
+
+  function handleAgeChange(event) {
+    setAge(event.target.value)
+  }
+
   return (
     <div>
       <form>
         <label htmlFor="name">Name: </label>
         <input value={name} onChange={handleChange} id="name" />
+        <label htmlFor="age">Age: </label>
+        <input value={age} onChange={handleAgeChange} id="age" />
       </form>
-      {name ? <strong>Hello {name}</strong> : 'Please type your name'}
+      {name ? (
+        <strong>
+          Hello {name}, happy {age} years
+        </strong>
+      ) : (
+        'Please type your name'
+      )}
     </div>
   )
 }
