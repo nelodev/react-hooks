@@ -3,26 +3,20 @@
 
 import * as React from 'react'
 
-function useLocalStorageState(data) {
-  const [value, setValue] = React.useState(
-    () => window.localStorage.getItem(data.name) || data.value,
+function useLocalStorageState(key, defaultValue = '') {
+  const [state, setState] = React.useState(
+    () => window.localStorage.getItem(key) || defaultValue,
   )
   React.useEffect(() => {
-    window.localStorage.setItem(data.name, value)
-  }, [data, value])
+    window.localStorage.setItem(key, state)
+  }, [key, state])
 
-  return [value, setValue]
+  return [state, setState]
 }
 
 function Greeting({initialName = '', initialAge = 25}) {
-  const [name, setName] = useLocalStorageState({
-    name: 'initialName',
-    value: initialName,
-  })
-  const [age, setAge] = useLocalStorageState({
-    name: 'age',
-    value: initialAge,
-  })
+  const [name, setName] = useLocalStorageState('name', initialName)
+  const [age, setAge] = useLocalStorageState('age', initialAge)
   // 🐨 initialize the state to the value from localStorage
   // 💰 window.localStorage.getItem('name') || initialName
   // const [name, setName] = React.useState(
