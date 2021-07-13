@@ -4,37 +4,10 @@
 import * as React from 'react'
 import {useLocalStorageState} from '../utils'
 
-function Board() {
-  const [squares, setSquares] = useLocalStorageState(
-    'squares',
-    Array(9).fill(null),
-  )
-
-  function selectSquare(square) {
-    const winnerAlreadyExists = calculateWinner(squares)
-    const squareAlreadyClicked = squares[square]
-    if (winnerAlreadyExists || squareAlreadyClicked) {
-      return
-    }
-
-    const currentValue = calculateNextValue(squares)
-    const newSquares = [...squares]
-    newSquares[square] = currentValue
-
-    setSquares(newSquares)
-
-    if (calculateWinner(newSquares)) {
-      return
-    }
-  }
-
-  function restart() {
-    setSquares(Array(9).fill(null))
-  }
-
+function Board({onClick, squares}) {
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => selectSquare(i)}>
+      <button className="square" onClick={() => onClick(i)}>
         {squares[i]}
       </button>
     )
@@ -42,14 +15,6 @@ function Board() {
 
   return (
     <div>
-      {/* 🐨 put the status in the div below */}
-      <div className="status">
-        {calculateStatus(
-          calculateWinner(squares),
-          squares,
-          calculateNextValue(squares),
-        )}
-      </div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -65,22 +30,85 @@ function Board() {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
-      <button
-        disabled={!squares.filter(square => square).length}
-        className="restart"
-        onClick={restart}
-      >
-        restart
-      </button>
     </div>
   )
 }
 
 function Game() {
+  const [currentSquares, setCurrentSquares] = useLocalStorageState(
+    'squares',
+    Array(9).fill(null),
+  )
+  const [moves, setMoves] = useLocalStorageState('moves', [])
+
+  React.useEffect(() => {
+    const numberOfSteps = currentSquares.filter(step => step).length
+    const Steps = [
+      <button disabled={numberOfSteps === 0}>
+        1.- Go to game start {numberOfSteps === 0 ? '(current)' : ''}
+      </button>,
+      <br />,
+    ]
+
+    console.log('numberOfSteps', numberOfSteps)
+
+    for (let i = 0; i < numberOfSteps; i++) {
+      Steps.push(
+        <React.Fragment>
+          <button disabled={i === numberOfSteps - 1}>
+            {i + 2}.- Go to move #{i + 2}{' '}
+            {i === numberOfSteps - 1 ? '(Current)' : ''}
+          </button>
+          <br />
+        </React.Fragment>,
+      )
+    }
+    setMoves(Steps)
+  }, [currentSquares, setMoves])
+
+  function selectSquare(square) {
+    const winnerAlreadyExists = calculateWinner(currentSquares)
+    const squareAlreadyClicked = currentSquares[square]
+    if (winnerAlreadyExists || squareAlreadyClicked) {
+      return
+    }
+
+    const currentValue = calculateNextValue(currentSquares)
+    const newSquares = [...currentSquares]
+    newSquares[square] = currentValue
+
+    setCurrentSquares(newSquares)
+
+    if (calculateWinner(newSquares)) {
+      return
+    }
+  }
+
+  function restart() {
+    setCurrentSquares(Array(9).fill(null))
+  }
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <Board onClick={selectSquare} squares={currentSquares} />
+        <button
+          className="restart"
+          onClick={restart}
+          disabled={!currentSquares.filter(square => square).length}
+        >
+          restart
+        </button>
+      </div>
+      <div className="game-info">
+        <div>
+          {calculateStatus(
+            calculateWinner(currentSquares),
+            currentSquares,
+            calculateNextValue(currentSquares),
+          )}
+        </div>
+        <div>{moves}</div>
       </div>
     </div>
   )
