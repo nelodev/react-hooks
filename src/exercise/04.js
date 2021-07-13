@@ -39,32 +39,31 @@ function Game() {
     'squares',
     Array(9).fill(null),
   )
-  const [moves, setMoves] = useLocalStorageState('moves', [])
+  const [history, setHistory] = useLocalStorageState('history', [])
+  const [currentStep, setCurrentStep] = useLocalStorageState('currentStep', 0)
 
-  React.useEffect(() => {
-    const numberOfSteps = currentSquares.filter(step => step).length
-    const Steps = [
-      <button disabled={numberOfSteps === 0}>
-        1.- Go to game start {numberOfSteps === 0 ? '(current)' : ''}
-      </button>,
-      <br />,
-    ]
+  const restartGame = () => {
+    setCurrentSquares(Array(9).fill(null))
+    setCurrentStep(0)
+    setHistory([])
+  }
 
-    console.log('numberOfSteps', numberOfSteps)
+  const handleClickStep = index => {
+    setCurrentSquares(history[index])
+    setCurrentStep(index + 1)
+  }
 
-    for (let i = 0; i < numberOfSteps; i++) {
-      Steps.push(
-        <React.Fragment>
-          <button disabled={i === numberOfSteps - 1}>
-            {i + 2}.- Go to move #{i + 2}{' '}
-            {i === numberOfSteps - 1 ? '(Current)' : ''}
-          </button>
-          <br />
-        </React.Fragment>,
-      )
+  // React.useEffect(() => {
+  //   console.log('history', history)
+  // }, [history])
+
+  function handleSetHistory(newSquares) {
+    if (currentStep === history.length) {
+      setHistory([...history, newSquares])
+    } else {
+      setHistory(history.slice(0, currentStep))
     }
-    setMoves(Steps)
-  }, [currentSquares, setMoves])
+  }
 
   function selectSquare(square) {
     const winnerAlreadyExists = calculateWinner(currentSquares)
@@ -79,13 +78,45 @@ function Game() {
 
     setCurrentSquares(newSquares)
 
+    handleSetHistory(newSquares, square)
+
     if (calculateWinner(newSquares)) {
       return
     }
+
+    setCurrentStep(lastStep => lastStep + 1)
+  }
+
+  function getMoves() {
+    const Steps = [
+      <button disabled={currentStep === 0} onClick={() => restartGame()}>
+        1.- Go to game start {currentStep === 0 ? '(current)' : ''}
+      </button>,
+      <br />,
+    ]
+
+    for (let i = 0; i < history.length; i++) {
+      Steps.push(
+        <React.Fragment>
+          <button
+            disabled={i === currentStep - 1}
+            onClick={() => handleClickStep(i)}
+          >
+            {i + 2}.- Go to move #{i + 2}{' '}
+            {i === currentStep - 1 ? '(Current)' : ''}
+          </button>
+          <br />
+        </React.Fragment>,
+      )
+    }
+
+    return Steps
   }
 
   function restart() {
     setCurrentSquares(Array(9).fill(null))
+    setCurrentStep(0)
+    setHistory([])
   }
 
   return (
@@ -108,7 +139,7 @@ function Game() {
             calculateNextValue(currentSquares),
           )}
         </div>
-        <div>{moves}</div>
+        <div>{getMoves()}</div>
       </div>
     </div>
   )
