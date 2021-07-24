@@ -27,9 +27,15 @@ function PokemonInfo({pokemonName}) {
     return <PokemonDataView pokemon={status.pokemon} />
 }
 
-// function Lol() {
-//   return <h1>Something went wrong...</h1>
-// }
+function ErrorFallback({error, resetErrorBoundary}) {
+  return (
+    <div role="alert">
+      <p>Something went wrong:</p>
+      <pre>{error.message}</pre>
+      <button onClick={resetErrorBoundary}>Try again</button>
+    </div>
+  )
+}
 
 function App() {
   const [pokemonName, setPokemonName] = React.useState('')
@@ -45,10 +51,8 @@ function App() {
       <div className="pokemon-info">
         <ErrorBoundary
           key={pokemonName}
-          FallbackComponent={() => <h1>Something went wrong...</h1>}
-          onReset={() => {
-            setPokemonName(null)
-          }}
+          FallbackComponent={ErrorFallback}
+          onReset={() => setPokemonName('')}
         >
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
