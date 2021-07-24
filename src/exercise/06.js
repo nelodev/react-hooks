@@ -5,6 +5,29 @@ import * as React from 'react'
 import {fetchPokemon, PokemonInfoFallback, PokemonDataView} from '../pokemon'
 import {PokemonForm} from '../pokemon'
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {hasError: false, error: null}
+  }
+
+  static getDerivedStateFromError(error) {
+    return {hasError: true}
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.log('algo ha ido malxd')
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong...</h1>
+    }
+
+    return this.props.children
+  }
+}
+
 function PokemonInfo({pokemonName}) {
   const [status, setStatus] = React.useState({status: 'idle', pokemon: null})
 
@@ -18,13 +41,7 @@ function PokemonInfo({pokemonName}) {
       .catch(error => setStatus({status: 'rejected', pokemon: null, error}))
   }, [pokemonName])
 
-  if (status.status === 'rejected')
-    return (
-      <div role="alert">
-        There was an error:{' '}
-        <pre style={{whiteSpace: 'normal'}}>{status.error.message}</pre>
-      </div>
-    )
+  if (status.status === 'rejected') throw status.error
   if (status.status === 'idle') return 'Submit a pokemon'
   if (status.status === 'pending')
     return <PokemonInfoFallback name={pokemonName} />
@@ -44,7 +61,9 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
+        <ErrorBoundary>
+          <PokemonInfo pokemonName={pokemonName} />
+        </ErrorBoundary>
       </div>
     </div>
   )
